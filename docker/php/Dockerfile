@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
 COPY /docker/php/php.ini /etc/php/8.1/fpm/conf.d/99-custom.ini
 
 # PHP-FPMの設定
-RUN sed -i 's/listen = \/run\/php\/php8.1-fpm.sock/listen = 0.0.0.0:10000/' /etc/php/8.1/fpm/pool.d/www.conf
+RUN sed -i 's/listen = \/run\/php\/php8.1-fpm.sock/listen = 0.0.0.0:9000/' /etc/php/8.1/fpm/pool.d/www.conf
 
 # 作業ディレクトリの設定
 WORKDIR /var/www/html
