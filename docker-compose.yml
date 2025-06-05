@@ -1,19 +1,46 @@
-version: '3'
-services:
-  app:  # ここが "app" である必要があります
-    build:
-      context: .
-      dockerfile: ./docker/php/Dockerfile
-    volumes:
-      - ./src:/var/www/html
-    ports:
-      - "9000:9000"
+version: '3.8'
 
-  nginx:
-    image: nginx:latest
+services:
+  # PostgreSQLデータベース
+  postgres:
+    image: postgres:15
+    container_name: product_management_db
+    environment:
+      POSTGRES_DB: product_management
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_password
     ports:
-      - "10000:80"
+      - "5432:5432"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # PHPアプリケーション
+  web:
+    build: .
+    container_name: product_management_web
+    ports:
+      - "8080:80"
     depends_on:
-      - app
+      - postgres
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=product_management
+      - DB_USER=app_user
+      - DB_PASSWORD=app_password
+    volumes:
+      - ./:/var/www/html
+      - ./logs:/var/log/nginx
+    networks:
+      - app_network
+    restart: unless-stopped
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
