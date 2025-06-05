@@ -2,7 +2,7 @@
 FROM php:8.1.18-fpm
 # 独自のphp.iniファイル(PHPの設定ファイル)を 
 # コンテナ内の/usr/local/etc/php/ディレクトリにコピー
-COPY php.ini /usr/local/etc/php/
+COPY ./doker/php/php.ini /usr/local/etc/php/
 
 # パッケージやPHPの拡張モジュールをインストールするコマンド　を実行
 RUN apt-get update && apt-get install -y \
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
 	curl \
 	zip \
 	unzip \
-    && docker-php-ext-install pdo_mysql
+    libpq-dev && docker-php-ext-install pdo pdo_pgsql
 
 # 作業ディレクトリを/var/wwwに設定
 WORKDIR /var/www
