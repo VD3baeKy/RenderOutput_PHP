@@ -1,0 +1,116 @@
+name: PHP CI & Allure
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: ${{ secrets.DB_USERNAME }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Create test directories and configuration
+      run: |
+        mkdir -p src/test/resources
+        cat > src/test/resources/application-test.properties << EOF
+        spring.datasource.url=${{ secrets.DB_URL }}
+        spring.datasource.username=${{ secrets.DB_USERNAME }}
+        spring.datasource.password=${{ secrets.DB_PASSWORD }}
+        spring.datasource.driver-class-name=org.postgresql.Driver
+        spring.jpa.hibernate.ddl-auto=create-drop
+        stripe.api-key=${{ secrets.STRIPE_API_KEY }}
+        stripe.webhook-secret=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        server.port=0
+        logging.level.org.springframework=INFO
+        logging.level.com.example=DEBUG
+        EOF
+
+    - name: Maven dependency resolve (reset and force download)
+      run: mvn dependency:purge-local-repository dependency:resolve
+      
+    - name: Build with Maven (skip tests)
+      run: mvn clean install -DskipTests
+      
+
+    - name: Run tests and generate Allure results
+      run: mvn clean test -Duser.timezone=Asia/Tokyo
+      env:
+        SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
+        SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
+        SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+        STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        SERVER_PORT: 0
+
+    - name: Debug Allure result directory
+      run: ls -l target/allure-results || echo "No allure-results directory"
+
+    - name: Generate Allure HTML report
+      uses: simple-elf/allure-report-action@v1
+      with:
+        allure_results: 'target/allure-results'
+        allure_report: 'target/allure-report'
+        gh_pages: false
+
+    - name: Create artifact directory and copy Allure HTML report
+      run: |
+        rm -rf artifact_reports
+        mkdir -p artifact_reports
+        cp -r target/allure-report/* artifact_reports/
+
+    - name: Copy XML test results to artifact directory
+      run: cp -r target/surefire-reports/*.xml artifact_reports/ || echo "No XML files to copy"
+
+    - name: Save test reports to current repository
+      if: always()
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add artifact_reports/
+        git commit -m "Add Allure test reports from CI run" || echo "No changes to commit"
+        git push origin HEAD:main
+
+    - name: Push report to test code repository
+      if: always()
+      run: |
+        git clone https://${{ secrets.REPO_ACCESS_TOKEN }}@github.com/VD3baeKy/RenderOutput2_TestCodeRepo.git test-repo
+        cp -r artifact_reports/* test-repo/
+        touch test-repo/.nojekyll
+        cd test-repo
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "Update Allure test report" || echo "No changes to commit"
+        git push
+        
