@@ -4,6 +4,9 @@ FROM php:8.1.18-fpm
 # コンテナ内の/usr/local/etc/php/ディレクトリにコピー
 COPY php.ini /usr/local/etc/php/
 
+# 現在のフォルダ位置を確認
+RUN pwd
+
 # パッケージやPHPの拡張モジュールをインストールするコマンド　を実行
 RUN apt-get update && apt-get install -y \
 	git \
