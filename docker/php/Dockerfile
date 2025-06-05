@@ -2,7 +2,7 @@
 FROM php:8.1.18-fpm
 # 独自のphp.iniファイル(PHPの設定ファイル)を 
 # コンテナ内の/usr/local/etc/php/ディレクトリにコピー
-COPY ./doker/php/php.ini /usr/local/etc/php/
+COPY /doker/php/php.ini /usr/local/etc/php/
 
 # パッケージやPHPの拡張モジュールをインストールするコマンド　を実行
 RUN apt-get update && apt-get install -y \
