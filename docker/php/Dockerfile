@@ -1,29 +1,42 @@
-# ベースイメージとしてUbuntuを指定
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
-# 環境変数の設定
+# タイムゾーンの設定（対話的インストールを避けるため）
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Tokyo
 
 # 必要なパッケージのインストール
-RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository ppa:ondrej/php && \
-    apt-get update && \
-    apt-get install -y \
-    php8.1 \
-    php8.1-mysql \
-    php8.1-fpm \
+RUN apt-get update && apt-get install -y \
     nginx \
-    && apt-get clean
+    php8.1-fpm \
+    php8.1-pgsql \
+    php8.1-mbstring \
+    php8.1-xml \
+    php8.1-curl \
+    php8.1-zip \
+    php8.1-gd \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# PHP設定ファイルのコピー
-COPY ./docker/php/php.ini /etc/php/8.1/fpm/php.ini
+# PHP-FPMの設定
+RUN sed -i 's/listen = \/run\/php\/php8.1-fpm.sock/listen = 127.0.0.1:9000/' /etc/php/8.1/fpm/pool.d/www.conf
 
-# Nginx設定ファイルのコピー
-COPY ./docker/nginx/default.conf /etc/nginx/sites-available/default
+# Nginxの設定ファイルをコピー
+COPY default.conf /etc/nginx/sites-available/default
 
-# ソースコードのコピー
-COPY ./src /var/www/html
+# アプリケーションファイルをコピー
+COPY . /var/www/html/
 
-# NginxとPHP-FPMの起動
-CMD service php8.1-fpm start && nginx -g 'daemon off;'
+# 権限の設定
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# PHP-FPMとNginxを起動するスクリプトを作成
+RUN echo '#!/bin/bash\n\
+service php8.1-fpm start\n\
+nginx -g "daemon off;"' > /start.sh \
+    && chmod +x /start.sh
+
+EXPOSE 80
+
+CMD ["/start.sh"]
