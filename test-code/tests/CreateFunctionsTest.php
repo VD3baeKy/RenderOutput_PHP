@@ -2,6 +2,7 @@
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../create_functions.php';
+require_once __DIR__ . '/../common_functions.php';
 
 class CreateFunctionsTest extends TestCase
 {
