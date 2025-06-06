@@ -43,6 +43,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progre
 # srcディレクトリの内容を/var/www/htmlにコピー
 COPY src/ ./html/
 
+# シンボリックリンクを作成（srcをhtmlへリンク）
+RUN ln -s /var/www/html /var/www/src
+
 # 権限設定
 RUN chown -R www-data:www-data /var/www
 
