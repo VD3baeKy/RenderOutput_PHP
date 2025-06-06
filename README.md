@@ -12,4 +12,4 @@
 * PHPUnit Result
     - [Result Page HTML] https://vd3baeky.github.io/RenderOutput_PHP/
     - [Test Code] https://github.com/VD3baeKy/RenderOutput_PHP/blob/main/test-code/tests/ProductServiceTest.php
-    - [CI (Github Actions) Code] https://github.com/VD3baeKy/RenderOutput_PHP/blob/main/.github/workflows/phpunit.yml
+    - [Test CI (Github Actions) Code] https://github.com/VD3baeKy/RenderOutput_PHP/blob/main/.github/workflows/phpunit.yml
