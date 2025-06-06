@@ -5,7 +5,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 echo getenv('DB_HOST');
-var_dump($_ENV['DB_HOST'], getenv('DB_HOST'));
+//var_dump($_ENV['DB_HOST'], getenv('DB_HOST'));
 
     
 // データベース接続設定
