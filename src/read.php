@@ -19,6 +19,7 @@ echo getenv('PGHOST');
 echo getenv('DB_HOST');
 //var_dump($_ENV['DB_HOST'], getenv('DB_HOST'));
 
+echo $_ENV['DB_HOST'];
     
 // データベース接続設定
 $db_host = $_ENV['DB_HOST'] ?? 'postgres';
