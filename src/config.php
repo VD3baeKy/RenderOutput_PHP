@@ -1,20 +1,14 @@
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
-Dotenv\Dotenv::createImmutable('/etc/secrets')->load();
-
+Dotenv\Dotenv::createImmutable('/tmp')->load();
+    
 // データベース接続設定
-//$db_host = $_ENV['DB_HOST'] ?? 'postgres';
-//$db_name = $_ENV['DB_NAME'] ?? 'product_management';
-//$db_user = $_ENV['DB_USER'] ?? 'app_user';
-//$db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
-//$db_port = $_ENV['DB_PORT'] ?? '5432';
-
-$db_host = ${PGHOST};
-$db_name = ${PGDATABASE};
-$db_user = ${PGUSER};
-$db_password = ${PGPASSWORD};
-$db_port = ${PGPORT};
+$db_host = $_ENV['DB_HOST'] ?? 'postgres';
+$db_name = $_ENV['DB_NAME'] ?? 'product_management';
+$db_user = $_ENV['DB_USER'] ?? 'app_user';
+$db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
+$db_port = $_ENV['DB_PORT'] ?? '5432';
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
