@@ -33,12 +33,11 @@ COPY docker/error/50x.html /var/www/html/error/50x.html
 
 WORKDIR /var/www/html
 
-# ① composer.json/composer.lockだけをまずコピー（この時点でvendorがまだなければcomposer installだけする）
-COPY src/composer.json src/composer.lock ./
-RUN composer install --no-dev --optimize-autoloader
+# ここでcomposer "まっさら" 契約を実行（毎回これでOK）
+RUN composer require vlucas/phpdotenv guzzlehttp/guzzle monolog/monolog
 
-# ② 残りのアプリ一式コピー
-COPY /src /var/www/html
+# アプリ本体をコピー
+COPY src/ ./
 
 RUN chown -R www-data:www-data /var/www/html
 
