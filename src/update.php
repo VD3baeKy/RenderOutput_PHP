@@ -13,12 +13,12 @@ $db_port = $_ENV['DB_PORT'] ?? '5432';
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
-$pdo->exec("SET NAMES 'UTF8'");
 
 // submitパラメータの値が存在するとき（「更新」ボタンを押したとき）の処理
 if (isset($_POST['submit'])) {
     try {
-        $pdo = new PDO($dsn, $user, $password);
+        $pdo = new PDO($dsn, $db_user, $db_password);
+        $pdo->exec("SET NAMES 'UTF8'");
 
         // 動的に変わる値をプレースホルダに置き換えたUPDATE文をあらかじめ用意する
         $sql_update = '
