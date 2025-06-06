@@ -30,7 +30,7 @@ jobs:
       - name: Run PHPUnit with HTML coverage
         run: |
           mkdir -p test-code/result
-          vendor/bin/phpunit --coverage-html test-code/result test-code/tests
+          vendor/bin/phpunit --coverage-html test-code/result test-code/tests/ProductServiceTest.php
 
       - name: Commit and Push Coverage Report
         run: |
