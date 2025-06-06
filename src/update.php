@@ -10,6 +10,8 @@ $db_user = $_ENV['DB_USER'] ?? 'app_user';
 $db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
 $db_port = $_ENV['DB_PORT'] ?? '5432';
 
+echo $db_password;
+
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
 
