@@ -15,11 +15,11 @@ var_dump($_ENV['PGHOST'], getenv('PGHOST'));
 //$db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
 //$db_port = $_ENV['DB_PORT'] ?? '5432';
 
-$db_host = ${PGHOST}
-$db_name = ${PGDATABASE}
-$db_user = ${PGUSER}
-$db_password = ${PGPASSWORD}
-$db_port = ${PGPORT:-5432}
+$db_host = ${PGHOST};
+$db_name = ${PGDATABASE};
+$db_user = ${PGUSER};
+$db_password = ${PGPASSWORD};
+$db_port = ${PGPORT:-5432};
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
