@@ -5,7 +5,7 @@ ENV TZ=Asia/Tokyo
 ENV PORT=10000
 
 RUN apt-get update && apt-get install -y \
-    nginx-light \
+    nginx-extras \
     php8.1-fpm \
     php8.1-pgsql php8.1-mbstring php8.1-xml php8.1-curl \
     php8.1-zip  php8.1-gd php8.1-intl php8.1-bcmath \
