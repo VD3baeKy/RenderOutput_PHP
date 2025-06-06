@@ -8,6 +8,10 @@ error_reporting(E_ALL);
 echo getenv('PGHOST');
 var_dump($_ENV['PGHOST'], getenv('PGHOST'));
 
+echo ${DB_HOST};
+echo getenv('DB_HOST');
+var_dump($_ENV['DB_HOST'], getenv('DB_HOST'));
+
     
 // データベース接続設定
 //$db_host = $_ENV['DB_HOST'] ?? 'postgres';
