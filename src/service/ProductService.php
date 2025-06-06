@@ -35,5 +35,25 @@ class ProductService
         $stmt->execute();
         return $stmt->rowCount();
     }
+
+    /**
+     * 商品一覧取得（部分一致検索＆並び順）
+     * 
+     * @param PDO    $pdo
+     * @param string $keyword  検索ワード（空OK）
+     * @param string $order    並び順('asc'|'desc'以外ならasc)
+     * @return array
+     */
+    public static function searchProducts(PDO $pdo, string $keyword = '', string $order = 'asc'): array
+    {
+        $order = ($order === 'desc') ? 'DESC' : 'ASC';
+        $sql = 'SELECT * FROM products WHERE product_name LIKE :keyword ORDER BY updated_at ' . $order;
+        $stmt = $pdo->prepare($sql);
+        // 検索語の前後に%をつける（部分一致）
+        $partial_match = "%" . $keyword . "%";
+        $stmt->bindValue(':keyword', $partial_match, PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
 }
