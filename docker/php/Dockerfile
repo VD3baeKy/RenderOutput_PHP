@@ -23,7 +23,12 @@ RUN sed -i 's|listen = .*|listen = 127.0.0.1:9000|' /etc/php/8.1/fpm/pool.d/www.
 #   * Render が注入する $PORT を listen に使う
 #   * すべてを PHP-FPM に渡すシンプル構成
 RUN rm /etc/nginx/sites-enabled/default
-COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+# テンプレートとしてconfファイルを配置
+COPY docker/nginx/default.conf.template /etc/nginx/conf.d/default.conf.template
+
+# 起動時に ${PORT} を展開して本番confを作成し、nginxを起動
+CMD envsubst '$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && \
+    nginx -g "daemon off;"
 
 # default.conf 例（プロジェクト側ファイル）
 #---------------------------------------------------------------
