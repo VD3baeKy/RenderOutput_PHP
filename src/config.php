@@ -8,7 +8,6 @@ $db_port = $_ENV['DB_PORT'] ?? '5432';
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
-$pdo->exec("SET NAMES 'UTF8'");
 
 // 接続をテストする関数
 function getDatabaseConnection() {
@@ -16,6 +15,7 @@ function getDatabaseConnection() {
     
     try {
         $pdo = new PDO($dsn, $db_user, $db_password);
+        $pdo->exec("SET NAMES 'UTF8'");
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         return $pdo;
