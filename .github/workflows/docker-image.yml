@@ -90,9 +90,8 @@ jobs:
         # デフォルトのNginx設定を削除
         RUN rm -f /etc/nginx/sites-enabled/default
 
-        # アプリケーションファイルのコピー（条件付き）
-        # srcディレクトリが存在する場合のみコピー
-        COPY --from=src src/ /var/www/html/ 2>/dev/null || true
+        # アプリケーションファイルのコピー
+        COPY ./src/ /var/www/html/
         # または、より安全な方法として以下を使用：
         # RUN mkdir -p /var/www/html
         # 次に、別のステップでファイルをコピー
