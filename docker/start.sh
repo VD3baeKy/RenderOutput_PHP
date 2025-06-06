@@ -1,11 +1,12 @@
 #!/bin/bash
 set -e
 
-# Secretファイルの権限を修正
+# Secretファイルをweb公開外領域（/tmp）にコピー
 if [ -f /etc/secrets/.env ]; then
-    echo "[start.sh] Fixing permissions for /etc/secrets/.env"
-    chown www-data:www-data /etc/secrets/.env
-    chmod 640 /etc/secrets/.env
+    cp /etc/secrets/.env /tmp/.env
+    chown www-data:www-data /tmp/.env
+    chmod 640 /tmp/.env
+    echo "[start.sh] Copied /etc/secrets/.env to /tmp/.env"
 fi
 
 # Nginxのconfを環境変数PORTで置換
