@@ -3,6 +3,11 @@
 
 ---
 
+## common_functions.php
+* 共通の関数はcommon_functionsとしてまとめる。
+
+---
+
 ## UpdateFunctionsTest
 * updateProduct(), getProductById(), getAllVendorCodes() の３つの関数にPHPコードを分割し、その関数についてPHPUnitテストを実施。
     - ⇒ そのため、外部依存(DB・POST/P​OST/_GET)をモックにして、関数に分離するとテストしやすくなる。
