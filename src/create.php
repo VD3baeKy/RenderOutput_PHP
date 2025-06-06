@@ -50,7 +50,8 @@ if (isset($_POST['submit'])) {
 
 // セレクトボックスの選択肢として設定するため、仕入先コードの配列を取得する
 try {
-    $pdo = new PDO($dsn, $user, $password);
+    $pdo = new PDO($dsn, $db_user, $db_password);
+    $pdo->exec("SET NAMES 'UTF8'");
 
     // vendorsテーブルからvendor_codeカラムのデータを取得するためのSQL文を変数$sql_selectに代入する
     $sql_select = 'SELECT vendor_code FROM vendors';
