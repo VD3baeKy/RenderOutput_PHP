@@ -109,5 +109,67 @@ class ProductServiceTest extends TestCase
         $result = \App\Service\ProductService::searchProducts($pdo, '本番', 'desc');
         $this->assertSame($expected, $result);
     }
+
+    public function testGetProductById()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+    
+        $expected = [
+            'id' => 1, 'product_code' => 123, 'product_name' => 'テスト商品', 'price' => 1000,
+            'stock_quantity' => 10, 'vendor_code' => 1, 'updated_at' => '2024-01-01 00:00:00'
+        ];
+        $stmt->expects($this->once())->method('execute');
+        $stmt->expects($this->once())->method('fetch')
+            ->with(PDO::FETCH_ASSOC)
+            ->willReturn($expected);
+    
+        $pdo = $this->createMock(PDO::class);
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->with($this->stringContains('WHERE id = :id'))
+            ->willReturn($stmt);
+    
+        $result = \App\Service\ProductService::getProductById($pdo, 1);
+        $this->assertSame($expected, $result);
+    }
+    
+    public function testGetProductByIdNotFound()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->expects($this->once())->method('execute');
+        $stmt->expects($this->once())->method('fetch')
+            ->with(PDO::FETCH_ASSOC)
+            ->willReturn(false);
+    
+        $pdo = $this->createMock(PDO::class);
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->willReturn($stmt);
+    
+        $result = \App\Service\ProductService::getProductById($pdo, 999);
+        $this->assertNull($result);
+    }
+    
+    public function testUpdateProduct()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->expects($this->once())->method('execute')->willReturn(true);
+        $stmt->expects($this->once())->method('rowCount')->willReturn(1);
+    
+        $pdo = $this->createMock(PDO::class);
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->willReturn($stmt);
+    
+        $data = [
+            'product_code' => 123,
+            'product_name' => '商品A',
+            'price' => 2000,
+            'stock_quantity' => 3,
+            'vendor_code' => 99,
+        ];
+        $result = \App\Service\ProductService::updateProduct($pdo, 5, $data);
+        $this->assertSame(1, $result);
+    }
     
 }
