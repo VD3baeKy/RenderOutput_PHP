@@ -45,4 +45,21 @@ class ProductServiceTest extends TestCase
         $codes = ProductService::getAllVendorCodes($pdo);
         $this->assertSame($expect, $codes);
     }
+
+    public function testDeleteProduct()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->expects($this->once())->method('execute')->willReturn(true);
+        $stmt->expects($this->once())->method('rowCount')->willReturn(1);
+
+        $pdo = $this->createMock(PDO::class);
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->willReturn($stmt);
+
+        $id = 10;
+        $result = \App\Service\ProductService::deleteProduct($pdo, $id);
+        $this->assertSame(1, $result);
+    }
+    
 }
