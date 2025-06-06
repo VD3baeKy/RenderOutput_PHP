@@ -47,6 +47,27 @@ jobs:
             mv src/service src/Service
           fi
 
+      # phpunit.xml.distを修正
+      - name: Fix phpunit.xml.dist
+        run: |
+          cat > phpunit.xml.dist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <phpunit bootstrap="vendor/autoload.php"
+                   colors="true"
+                   stopOnFailure="false">
+              <testsuites>
+                  <testsuite name="App Test Suite">
+                      <directory>test-code/tests</directory>
+                  </testsuite>
+              </testsuites>
+              <coverage processUncoveredFiles="true">
+                  <include>
+                      <directory suffix=".php">src/Service</directory>
+                  </include>
+              </coverage>
+          </phpunit>
+          EOF
+
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
