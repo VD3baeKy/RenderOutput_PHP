@@ -24,6 +24,9 @@ COPY docker/nginx/default.conf.template /etc/nginx/conf.d/default.conf.template
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
+COPY docker/error/404.html /var/www/html/error/404.html
+COPY docker/error/50x.html /var/www/html/error/50x.html
+
 COPY /src /var/www/html
 WORKDIR /var/www/html
 RUN chown -R www-data:www-data /var/www/html
