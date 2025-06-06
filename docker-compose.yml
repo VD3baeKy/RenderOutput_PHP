@@ -1,7 +1,25 @@
 version: '3.8'
 
 services:
-  # PHP-FPM
+  # --- SaaS PostgreSQLへの初期化用サービス ---
+  db_init:
+    image: postgres:15
+    environment:
+      PGPASSWORD: ${DB_PASSWORD}
+    command: >
+      bash -c "
+        until pg_isready -h ${DB_HOST} -p ${DB_PORT:-5432} -U ${DB_USER}; do
+          echo 'Waiting for DB...' && sleep 2;
+        done
+        &&
+        psql -h ${DB_HOST} -p ${DB_PORT:-5432} -U ${DB_USER} -d ${DB_NAME} -f /init.sql
+      "
+    volumes:
+      - ./docker/postgres/init.sql:/init.sql:ro
+    networks:
+      - app_network
+    restart: "no"
+
   php:
     build:
       context: .
@@ -24,7 +42,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # Nginx
   nginx:
     image: nginx:latest
     container_name: ${APP_NAME}_nginx
