@@ -34,7 +34,7 @@ function getProductById($pdo, $id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function getAllVendorCodes($pdo) {
+function update_getAllVendorCodes($pdo) {
     $sql = 'SELECT vendor_code FROM vendors';
     $stmt = $pdo->query($sql);
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
