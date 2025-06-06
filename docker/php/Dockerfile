@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     gettext \
  && rm -rf /var/lib/apt/lists/* && apt-get clean
 
-RUN sed -i 's|listen = .*|listen = 127.0.0.1:9000|' /etc/php/8.1/fpm/pool.d/www.conf \
+RUN sed -i 's|listen = .*|listen = 127.0.0.1:${PORT}|' /etc/php/8.1/fpm/pool.d/www.conf \
  && echo 'ping.path = /ping' >> /etc/php/8.1/fpm/pool.d/www.conf
 
 RUN rm /etc/nginx/sites-enabled/default
