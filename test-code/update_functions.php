@@ -1,5 +1,5 @@
 <?php
-function getPdo($dsn, $db_user, $db_password) {
+function update_getPdo($dsn, $db_user, $db_password) {
     $pdo = new PDO($dsn, $db_user, $db_password);
     $pdo->exec("SET NAMES 'UTF8'");
     return $pdo;
