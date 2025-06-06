@@ -1,8 +1,9 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use App\Service\ProductService;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
+
+use App\Service\ProductService;
+use PHPUnit\Framework\TestCase;
 
 class ProductServiceTest extends TestCase
 {
