@@ -4,9 +4,9 @@
 ---
 
 ## common_functions.php
-* 共通の関数はcommon_functionsとしてまとめる。
+* 共通の関数はcommon_functionsとしてまとめた。
     - getAllVendorCodes()
-    - getPDO()
+    - getPdo()
 
 ---
 
