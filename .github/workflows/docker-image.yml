@@ -106,16 +106,14 @@ jobs:
             CMD curl -f http://localhost/ || exit 1
 
         # 起動スクリプトの作成
-        RUN cat > /start.sh << 'SCRIPT'
-        #!/bin/bash
-        set -e
-
-        # PHP-FPMを起動
-        service php8.1-fpm start
-
-        # Nginxをフォアグラウンドで起動
-        nginx -g "daemon off;"
-        SCRIPT
+        RUN echo '#!/bin/bash' > /start.sh && \
+            echo 'set -e' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '# PHP-FPMを起動' >> /start.sh && \
+            echo 'service php8.1-fpm start' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '# Nginxをフォアグラウンドで起動' >> /start.sh && \
+            echo 'nginx -g "daemon off;"' >> /start.sh
 
         RUN chmod +x /start.sh
 
