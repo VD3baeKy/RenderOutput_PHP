@@ -9,47 +9,43 @@ RUN apt-get update && apt-get install -y \
     nginx-extras \
     php8.1-fpm \
     php8.1-pgsql php8.1-mbstring php8.1-xml php8.1-curl \
-    php8.1-zip  php8.1-gd php8.1-intl php8.1-bcmath \
+    php8.1-zip php8.1-gd php8.1-intl php8.1-bcmath \
     postgresql-client curl \
     gettext \
     unzip \
  && rm -rf /var/lib/apt/lists/* && apt-get clean
 
-# Composer本体の導入
+# Composer本体
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# nginx/php-fpm等の初期調整
+# php-fpm, nginx 設定
 RUN sed -i 's|listen = .*|listen = 127.0.0.1:9000|' /etc/php/8.1/fpm/pool.d/www.conf \
- && echo 'ping.path = /ping' >> /etc/php/8.1/fpm/pool.d/www.conf
-
-RUN rm /etc/nginx/sites-enabled/default
+ && echo 'ping.path = /ping' >> /etc/php/8.1/fpm/pool.d/www.conf \
+ && rm /etc/nginx/sites-enabled/default
 COPY docker/nginx/default.conf.template /etc/nginx/conf.d/default.conf.template
 
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
-
 COPY docker/error/404.html /var/www/html/error/404.html
 COPY docker/error/50x.html /var/www/html/error/50x.html
 
-# ワーキングディレクトリを/var/wwwに設定（htmlの親ディレクトリ）
+# Composer: まず composer.json をコピー
 WORKDIR /var/www
-
-# composer.jsonとcomposer.lockをコピー
 COPY composer.json composer.lock* ./
 
-# vendorディレクトリを/var/wwwに作成
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
-# srcディレクトリの内容を/var/www/htmlにコピー
+# アプリ本体をコピー（html/ 以下に置く）
 COPY src/ ./html/
 
-# シンボリックリンクを作成（srcをhtmlへリンク）
+# シンボリックリンクを張る（PSR-4 マッピング src/ → html/）
 RUN ln -s /var/www/html /var/www/src
 
-# 権限設定
+# ここで composer install を実行
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+# パーミッション調整
 RUN chown -R www-data:www-data /var/www
 
-# ワーキングディレクトリを戻す
+# 実行ディレクトリを戻す
 WORKDIR /var/www/html
 
 EXPOSE ${PORT}
