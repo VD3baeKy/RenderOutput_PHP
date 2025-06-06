@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     php8.1-pgsql php8.1-mbstring php8.1-xml php8.1-curl \
     php8.1-zip  php8.1-gd php8.1-intl php8.1-bcmath \
     postgresql-client curl \
+    gettext \
  && rm -rf /var/lib/apt/lists/* && apt-get clean
 
 RUN sed -i 's|listen = .*|listen = 127.0.0.1:9000|' /etc/php/8.1/fpm/pool.d/www.conf \
