@@ -4,22 +4,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-var_dump(file_exists('/tmp/.env'));
-var_dump(is_readable('/tmp/.env'));
-var_dump(file_get_contents('/tmp/.env'));
-
 require_once __DIR__ . '/vendor/autoload.php';
 Dotenv\Dotenv::createImmutable('/tmp')->load();
-
-//echo ${PGHOST};
-echo getenv('PGHOST');
-//var_dump($_ENV['PGHOST'], getenv('PGHOST'));
-
-//echo ${DB_HOST};
-echo getenv('DB_HOST');
-//var_dump($_ENV['DB_HOST'], getenv('DB_HOST'));
-
-echo $_ENV['DB_HOST'];
     
 // データベース接続設定
 $db_host = $_ENV['DB_HOST'] ?? 'postgres';
@@ -27,18 +13,6 @@ $db_name = $_ENV['DB_NAME'] ?? 'product_management';
 $db_user = $_ENV['DB_USER'] ?? 'app_user';
 $db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
 $db_port = $_ENV['DB_PORT'] ?? '5432';
-
-//$db_host = ${PGHOST};
-//$db_name = ${PGDATABASE};
-//$db_user = ${PGUSER};
-//$db_password = ${PGPASSWORD};
-//$db_port = ${PGPORT};
-
-//$db_host = ${DB_HOST};
-//$db_name = ${DB_NAME};
-//$db_user = ${DB_USER};
-//$db_password = ${DB_PASSWORD};
-//$db_port = ${DB_PORT};
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
