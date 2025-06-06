@@ -3,11 +3,9 @@ name: PHP CI & Testing
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: write
@@ -15,23 +13,24 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     env:
-      DB_HOST: localhost
-      DB_NAME: testdb
+      DB_HOST: ${{ secrets.DB_HOST || 'localhost' }}
+      DB_NAME: ${{ secrets.DB_NAME || 'testdb' }}
       DB_USER: ${{ secrets.DB_USERNAME || 'test_user' }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD || 'test_password' }}
-      DB_PORT: 5432
+      DB_PORT: ${{ secrets.DB_PORT || 5432 }}
 
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: testdb
+          POSTGRES_DB: ${{ secrets.DB_NAME || 'testdb' }}
           POSTGRES_USER: ${{ secrets.DB_USERNAME || 'test_user' }}
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD || 'test_password' }}
+        # ホスト側のポートもシークレットを尊重
         ports:
-          - 5432:5432
+          - ${{ secrets.DB_PORT || 5432 }}:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -39,153 +38,154 @@ jobs:
           --health-retries 5
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        extensions: pdo, pdo_pgsql, mbstring, xml, curl, zip, gd
-        coverage: xdebug
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: pdo, pdo_pgsql, mbstring, xml, curl, zip, gd
+          coverage: xdebug
 
-    - name: Validate Composer files
-      run: |
-        if [ -f "composer.json" ]; then
-          composer validate --strict
-        else
-          echo "composer.json not found, skipping validation"
-        fi
+      - name: Validate Composer files
+        run: |
+          if [ -f "composer.json" ]; then
+            composer validate --strict
+          else
+            echo "composer.json not found, skipping validation"
+          fi
 
-    - name: Install Composer dependencies
-      run: |
-        if [ -f "composer.json" ]; then
-          composer install --prefer-dist --no-progress --no-suggest
-        else
-          echo "No composer.json found, skipping dependency installation"
-        fi
+      - name: Install Composer dependencies
+        run: |
+          if [ -f "composer.json" ]; then
+            composer install --prefer-dist --no-progress --no-suggest
+          else
+            echo "No composer.json found, skipping dependency installation"
+          fi
 
-    - name: Setup test database
-      run: |
-        # PostgreSQLクライアントをインストール
-        sudo apt-get update
-        sudo apt-get install -y postgresql-client
-        
-        # テスト用データベースの初期化
-        PGPASSWORD=${{ secrets.DB_PASSWORD || 'test_password' }} psql -h localhost -U ${{ secrets.DB_USERNAME || 'test_user' }} -d testdb -f docker/PostogreSQL/init.sql
+      - name: Setup test database
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
 
-    - name: Run PHP syntax check
-      run: |
-        find src/ -name "*.php" -exec php -l {} \;
+          PGPASSWORD=${{ secrets.DB_PASSWORD || 'test_password' }} \
+          psql -h ${{ secrets.DB_HOST || 'localhost' }} \
+               -p ${{ secrets.DB_PORT || 5432 }} \
+               -U ${{ secrets.DB_USERNAME || 'test_user' }} \
+               -d ${{ secrets.DB_NAME || 'testdb' }} \
+               -f docker/PostogreSQL/init.sql
 
-    - name: Run PHP Code Sniffer (if available)
-      run: |
-        if command -v phpcs &> /dev/null; then
-          phpcs --standard=PSR12 src/
-        else
-          echo "PHPCS not available, skipping code style check"
-        fi
+      - name: Run PHP syntax check
+        run: |
+          find src/ -name "*.php" -exec php -l {} \;
 
-    - name: Run PHPUnit tests (if available)
-      run: |
-        if [ -f "phpunit.xml" ] || [ -f "phpunit.xml.dist" ]; then
-          vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
-        else
-          echo "No PHPUnit configuration found, skipping unit tests"
-        fi
+      - name: Run PHP Code Sniffer (if available)
+        run: |
+          if command -v phpcs &> /dev/null; then
+            phpcs --standard=PSR12 src/
+          else
+            echo "PHPCS not available, skipping code style check"
+          fi
 
-    - name: Test database connection
-      run: |
-        php -r "
-        \$dsn = 'pgsql:host=localhost;port=5432;dbname=testdb';
-        \$user = '${{ secrets.DB_USERNAME || 'test_user' }}';
-        \$password = '${{ secrets.DB_PASSWORD || 'test_password' }}';
-        try {
-            \$pdo = new PDO(\$dsn, \$user, \$password);
-            \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            echo 'Database connection successful!' . PHP_EOL;
-            
-            // テーブルの存在確認
-            \$stmt = \$pdo->query('SELECT COUNT(*) FROM vendors');
-            \$count = \$stmt->fetchColumn();
-            echo 'Vendors table contains ' . \$count . ' records.' . PHP_EOL;
-            
-            \$stmt = \$pdo->query('SELECT COUNT(*) FROM products');
-            \$count = \$stmt->fetchColumn();
-            echo 'Products table contains ' . \$count . ' records.' . PHP_EOL;
-            
-        } catch (PDOException \$e) {
-            echo 'Database connection failed: ' . \$e->getMessage() . PHP_EOL;
-            exit(1);
-        }
-        "
+      - name: Run PHPUnit tests (if available)
+        run: |
+          if [ -f "phpunit.xml" ] || [ -f "phpunit.xml.dist" ]; then
+            vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
+          else
+            echo "No PHPUnit configuration found, skipping unit tests"
+          fi
 
-    - name: Generate test report
-      run: |
-        mkdir -p test-results
-        echo "# PHP Application Test Report" > test-results/report.md
-        echo "Date: $(date)" >> test-results/report.md
-        echo "Commit: ${{ github.sha }}" >> test-results/report.md
-        echo "" >> test-results/report.md
-        echo "## Test Results" >> test-results/report.md
-        echo "- PHP Syntax Check: ✅ Passed" >> test-results/report.md
-        echo "- Database Connection: ✅ Passed" >> test-results/report.md
-        echo "- Database Schema: ✅ Tables created successfully" >> test-results/report.md
+      - name: Test database connection
+        run: |
+          php -r "
+          \$host = '${{ secrets.DB_HOST || 'localhost' }}';
+          \$port = '${{ secrets.DB_PORT || 5432 }}';
+          \$dbname = '${{ secrets.DB_NAME || 'testdb' }}';
+          \$dsn = \"pgsql:host=\$host;port=\$port;dbname=\$dbname\";
+          \$user = '${{ secrets.DB_USERNAME || 'test_user' }}';
+          \$password = '${{ secrets.DB_PASSWORD || 'test_password' }}';
+          try {
+              \$pdo = new PDO(\$dsn, \$user, \$password);
+              \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+              echo 'Database connection successful!' . PHP_EOL;
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: test-results
-        path: test-results/
+              \$stmt = \$pdo->query('SELECT COUNT(*) FROM vendors');
+              echo 'Vendors table contains ' . \$stmt->fetchColumn() . ' records.' . PHP_EOL;
 
-    - name: Save test reports to repository
-      if: always()
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        
-        # test-resultsディレクトリが存在する場合のみコミット
-        if [ -d "test-results" ]; then
-          git add test-results/
-          git commit -m "Add PHP test reports from CI run [skip ci]" || echo "No changes to commit"
-          git push origin HEAD:main || echo "Push failed, continuing..."
-        fi
+              \$stmt = \$pdo->query('SELECT COUNT(*) FROM products');
+              echo 'Products table contains ' . \$stmt->fetchColumn() . ' records.' . PHP_EOL;
+          } catch (PDOException \$e) {
+              echo 'Database connection failed: ' . \$e->getMessage() . PHP_EOL;
+              exit(1);
+          }
+          "
+
+      - name: Generate test report
+        run: |
+          mkdir -p test-results
+          {
+            echo "# PHP Application Test Report"
+            echo "Date: $(date)"
+            echo "Commit: ${{ github.sha }}"
+            echo
+            echo "## Test Results"
+            echo "- PHP Syntax Check: ✅ Passed"
+            echo "- Database Connection: ✅ Passed"
+            echo "- Database Schema: ✅ Tables created successfully"
+          } > test-results/report.md
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+
+      - name: Save test reports to repository
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -d "test-results" ]; then
+            git add test-results/
+            git commit -m "Add PHP test reports from CI run [skip ci]" || echo "No changes to commit"
+            git push origin HEAD:main || echo "Push failed, continuing..."
+          fi
 
   security-check:
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        tools: composer
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
 
-    - name: Security audit (if composer.lock exists)
-      run: |
-        if [ -f "composer.lock" ]; then
-          composer audit
-        else
-          echo "No composer.lock found, skipping security audit"
-        fi
+      - name: Security audit (if composer.lock exists)
+        run: |
+          if [ -f "composer.lock" ]; then
+            composer audit
+          else
+            echo "No composer.lock found, skipping security audit"
+          fi
 
-    - name: Check for hardcoded credentials
-      run: |
-        echo "Checking for potential security issues..."
-        
-        # ハードコードされた認証情報の検出
-        if grep -r "mysql:dbname=" src/ --include="*.php"; then
-          echo "⚠️  Warning: Hardcoded database credentials found"
-        fi
-        
-        if grep -r "password.*=" src/ --include="*.php" | grep -v "password.*\$"; then
-          echo "⚠️  Warning: Potential hardcoded passwords found"
-        fi
-        
-        echo "Security check completed"
-        
+      - name: Check for hardcoded credentials
+        run: |
+          echo "Checking for potential security issues..."
+
+          if grep -r "mysql:dbname=" src/ --include="*.php"; then
+            echo "⚠️  Warning: Hardcoded database credentials found"
+          fi
+
+          if grep -r "password.*=" src/ --include="*.php" | grep -v "password.*\$"; then
+            echo "⚠️  Warning: Potential hardcoded passwords found"
+          fi
+
+          echo "Security check completed"
