@@ -27,6 +27,40 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
+      # デバッグ用ステップを追加
+      - name: Debug - Show directory structure
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Directory structure ==="
+          ls -la
+          echo "=== Find ProductService.php ==="
+          find . -name "ProductService.php" -type f
+          echo "=== src directory structure ==="
+          ls -la src/ || echo "src directory not found"
+          echo "=== Check if vendor/autoload.php exists ==="
+          ls -la vendor/autoload.php || echo "vendor/autoload.php not found"
+
+      - name: Debug - Show composer.json
+        run: |
+          echo "=== composer.json content ==="
+          cat composer.json
+
+      - name: Debug - Show phpunit.xml
+        run: |
+          echo "=== phpunit.xml or phpunit.xml.dist content ==="
+          cat phpunit.xml || cat phpunit.xml.dist || echo "No phpunit config found"
+
+      - name: Debug - Check ProductService.php content
+        run: |
+          echo "=== ProductService.php location and content ==="
+          find . -name "ProductService.php" -exec echo "Found at: {}" \; -exec head -10 {} \;
+
+      - name: Debug - Check test file
+        run: |
+          echo "=== ProductServiceTest.php first 20 lines ==="
+          head -20 test-code/tests/ProductServiceTest.php
+
       - name: Run PHPUnit with HTML coverage
         run: |
           mkdir -p test-code/result
