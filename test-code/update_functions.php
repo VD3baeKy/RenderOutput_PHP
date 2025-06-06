@@ -1,9 +1,4 @@
 <?php
-function update_getPdo($dsn, $db_user, $db_password) {
-    $pdo = new PDO($dsn, $db_user, $db_password);
-    $pdo->exec("SET NAMES 'UTF8'");
-    return $pdo;
-}
 
 function updateProduct($pdo, $id, $data) {
     $sql = '
@@ -34,8 +29,3 @@ function getProductById($pdo, $id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function update_getAllVendorCodes($pdo) {
-    $sql = 'SELECT vendor_code FROM vendors';
-    $stmt = $pdo->query($sql);
-    return $stmt->fetchAll(PDO::FETCH_COLUMN);
-}
