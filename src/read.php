@@ -23,6 +23,7 @@ $keyword = isset($_GET['keyword']) ? $_GET['keyword'] : '';
 try {
     $pdo = new PDO($dsn, $db_user, $db_password);
     $pdo->exec("SET NAMES 'UTF8'");
+    $order = $_GET['order'] ?? 'ASC';  // デフォルトはASC
     $products = ProductService::searchProducts($pdo, $keyword, $order);
 } catch (PDOException $e) {
     exit($e->getMessage());
