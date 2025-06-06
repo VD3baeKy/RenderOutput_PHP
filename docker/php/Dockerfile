@@ -3,7 +3,8 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Tokyo
-ENV PORT=10000            # Render が既定で渡す値に合わせる
+# Render が実行時に上書きするが、ビルド時のデフォルトとして定義
+ENV PORT=10000
 
 # ---- 必要パッケージ -------------------------------------------------
 RUN apt-get update && apt-get install -y \
