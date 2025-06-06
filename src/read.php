@@ -19,7 +19,7 @@ $db_host = ${PGHOST};
 $db_name = ${PGDATABASE};
 $db_user = ${PGUSER};
 $db_password = ${PGPASSWORD};
-$db_port = ${PGPORT:-5432};
+$db_port = ${PGPORT};
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
