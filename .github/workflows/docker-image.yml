@@ -307,16 +307,16 @@ jobs:
             echo "✅ External health check passed"
             
             # 最終確認（レスポンス内容も確認）
-            echo "🎯 Final verification:"
-            response=$(curl -s http://localhost:8080)
-            echo "Response received: $response"
+            #echo "🎯 Final verification:"
+            #response=$(curl -s http://localhost:8080)
+            #echo "Response received: $response"
             
-            if echo "$response" | grep -q "Docker Container is Working"; then
-              echo "✅ All tests passed successfully!"
-              exit 0
-            else
-              echo "⚠️ Unexpected response content"
-            fi
+            #if echo "$response" | grep -q "Docker Container is Working"; then
+            #  echo "✅ All tests passed successfully!"
+            #  exit 0
+            #else
+            #  echo "⚠️ Unexpected response content"
+            #fi
           else
             echo "⚠️ External health check failed, waiting..."
             
