@@ -13,10 +13,10 @@ $db_port = $_ENV['DB_PORT'] ?? '5432';
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
-$pdo->exec("SET NAMES 'UTF8'");
 
 try {
-    $pdo = new PDO($dsn, $user, $password);
+    $pdo = new PDO($dsn, $db_user, $db_password);
+    $pdo->exec("SET NAMES 'UTF8'");
 
     // idカラムの値をプレースホルダ（:id）に置き換えたSQL文をあらかじめ用意する
     $sql_delete = 'DELETE FROM products WHERE id = :id';
