@@ -28,5 +28,9 @@
 
 ---
 
+## ReadFunctionsTest
+* getProducts関数 … 検索キーワードと並び順で取得する処理を抽象化。
+* PDOとPDOStatementをモック化し、SQLおよび、引数の通りにprepare/execute/fetchAllが正しく呼ばれることを検証。
+* ソートは、昇順/降順/デフォルト の3ケースを検証。
 
 
