@@ -4,6 +4,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+var_dump(file_exists('/etc/secrets/.env'));
+var_dump(is_readable('/etc/secrets/.env'));
+var_dump(file_get_contents('/etc/secrets/.env'));
+
 require_once __DIR__ . '/vendor/autoload.php';
 Dotenv\Dotenv::createImmutable('/etc/secrets')->load();
 
