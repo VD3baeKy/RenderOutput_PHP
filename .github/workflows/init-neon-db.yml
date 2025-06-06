@@ -14,4 +14,4 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Run init.sql on Neon (remote PostgreSQL)
-        run: psql ${{ secrets.NEON_PSQL }} -f /docker/PostogreSQL/init.sql
+        run: psql ${{ secrets.NEON_PSQL }} -f docker/PostogreSQL/init.sql
