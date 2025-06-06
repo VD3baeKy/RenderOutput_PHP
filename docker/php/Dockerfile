@@ -40,33 +40,16 @@ COPY composer.json composer.lock* ./
 # srcディレクトリの内容を/var/www/htmlにコピー
 COPY src/ ./html/
 
-# シンボリックリンクを作成（srcをhtmlへリンク）
+# serviceディレクトリをServiceに修正（大文字小文字の問題を解決）
+RUN if [ -d "/var/www/html/service" ]; then \
+        mv /var/www/html/service /var/www/html/Service; \
+    fi
+
+# シンボリックリンクを作成
 RUN ln -s /var/www/html /var/www/src
 
-# デバッグ情報を出力
-RUN echo "=== Directory structure ===" && \
-    ls -la /var/www/ && \
-    echo "=== /var/www/src ===" && \
-    ls -la /var/www/src/ && \
-    echo "=== Service directory ===" && \
-    ls -la /var/www/src/Service/ || echo "Service directory not found" && \
-    ls -la /var/www/src/service/ || echo "service directory not found" && \
-    echo "=== Find ProductService.php ===" && \
-    find /var/www -name "ProductService.php" -type f && \
-    echo "=== Check ProductService.php namespace ===" && \
-    head -5 /var/www/html/Service/ProductService.php 2>/dev/null || \
-    head -5 /var/www/html/service/ProductService.php 2>/dev/null || \
-    echo "ProductService.php not found"
-
-# vendorディレクトリを/var/wwwに作成
+# vendorディレクトリを作成（Composerが正しくクラスを認識するように）
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
-# Composerのオートロード情報を確認
-RUN echo "=== PSR-4 autoload mapping ===" && \
-    cat /var/www/vendor/composer/autoload_psr4.php
-
-# 再度dump-autoloadを実行（念のため）
-RUN composer dump-autoload --optimize
 
 # 権限設定
 RUN chown -R www-data:www-data /var/www
