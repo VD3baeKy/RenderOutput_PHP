@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+Dotenv\Dotenv::createImmutable('/etc/secrets')->load();
+
 // データベース接続設定
 //$db_host = $_ENV['DB_HOST'] ?? 'postgres';
 //$db_name = $_ENV['DB_NAME'] ?? 'product_management';
