@@ -3,9 +3,11 @@ name: PHP CI & Testing
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -17,9 +19,9 @@ jobs:
     env:
       DB_HOST: ${{ secrets.DB_HOST || 'localhost' }}
       DB_NAME: ${{ secrets.DB_NAME || 'testdb' }}
+      DB_PORT: ${{ secrets.DB_PORT || 5432 }}
       DB_USER: ${{ secrets.DB_USERNAME || 'test_user' }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD || 'test_password' }}
-      DB_PORT: ${{ secrets.DB_PORT || 5432 }}
 
     services:
       postgres:
@@ -28,9 +30,9 @@ jobs:
           POSTGRES_DB: ${{ secrets.DB_NAME || 'testdb' }}
           POSTGRES_USER: ${{ secrets.DB_USERNAME || 'test_user' }}
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD || 'test_password' }}
-        # ホスト側のポートもシークレットを尊重
+        # services では secrets が使えないため固定値にする
         ports:
-          - ${{ secrets.DB_PORT || 5432 }}:5432
+          - "5432:5432"
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -69,12 +71,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-          PGPASSWORD=${{ secrets.DB_PASSWORD || 'test_password' }} \
-          psql -h ${{ secrets.DB_HOST || 'localhost' }} \
-               -p ${{ secrets.DB_PORT || 5432 }} \
-               -U ${{ secrets.DB_USERNAME || 'test_user' }} \
-               -d ${{ secrets.DB_NAME || 'testdb' }} \
-               -f docker/PostogreSQL/init.sql
+          PGPASSWORD="$DB_PASSWORD" psql \
+            -h "$DB_HOST" \
+            -p "$DB_PORT" \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -f docker/PostogreSQL/init.sql
 
       - name: Run PHP syntax check
         run: |
@@ -99,14 +101,13 @@ jobs:
       - name: Test database connection
         run: |
           php -r "
-          \$host = '${{ secrets.DB_HOST || 'localhost' }}';
-          \$port = '${{ secrets.DB_PORT || 5432 }}';
-          \$dbname = '${{ secrets.DB_NAME || 'testdb' }}';
-          \$dsn = \"pgsql:host=\$host;port=\$port;dbname=\$dbname\";
-          \$user = '${{ secrets.DB_USERNAME || 'test_user' }}';
-          \$password = '${{ secrets.DB_PASSWORD || 'test_password' }}';
-          try {
-              \$pdo = new PDO(\$dsn, \$user, \$password);
+            \$dsn = 'pgsql:host=' . getenv('DB_HOST') .
+                   ';port='       . getenv('DB_PORT') .
+                   ';dbname='     . getenv('DB_NAME');
+            \$user = getenv('DB_USER');
+            \$pass = getenv('DB_PASSWORD');
+            try {
+              \$pdo = new PDO(\$dsn, \$user, \$pass);
               \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
               echo 'Database connection successful!' . PHP_EOL;
 
@@ -115,10 +116,10 @@ jobs:
 
               \$stmt = \$pdo->query('SELECT COUNT(*) FROM products');
               echo 'Products table contains ' . \$stmt->fetchColumn() . ' records.' . PHP_EOL;
-          } catch (PDOException \$e) {
+            } catch (PDOException \$e) {
               echo 'Database connection failed: ' . \$e->getMessage() . PHP_EOL;
               exit(1);
-          }
+            }
           "
 
       - name: Generate test report
@@ -189,3 +190,4 @@ jobs:
           fi
 
           echo "Security check completed"
+          
