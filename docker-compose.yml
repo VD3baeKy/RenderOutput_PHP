@@ -5,6 +5,7 @@ services:
   db_init:
     env_file:
       - /etc/secrets/.env
+      - /tmp/.env
     image: postgres:15
     environment:
       PGPASSWORD: ${DB_PASSWORD}
@@ -25,6 +26,7 @@ services:
   php:
     env_file:
       - /etc/secrets/.env
+      - /tmp/.env
     build:
       context: .
       dockerfile: docker/php/Dockerfile
@@ -49,6 +51,7 @@ services:
   nginx:
     env_file:
       - /etc/secrets/.env
+      - /tmp/.env
     image: nginx:latest
     container_name: ${APP_NAME}_nginx
     ports:
@@ -70,6 +73,7 @@ services:
 networks:
   env_file:
     - /etc/secrets/.env
+    - /tmp/.env
   app_network:
     driver: bridge
 
@@ -79,4 +83,5 @@ app:
     - "${WEB_PORT:-10000}:80"
   env_file:
     - /etc/secrets/.env
+    - /tmp/.env
     
