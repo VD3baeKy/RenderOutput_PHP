@@ -9,7 +9,7 @@ var_dump(is_readable('/etc/secrets/.env'));
 var_dump(file_get_contents('/etc/secrets/.env'));
 
 require_once __DIR__ . '/vendor/autoload.php';
-Dotenv\Dotenv::createImmutable('/etc/secrets')->load();
+Dotenv\Dotenv::createImmutable('/tmp')->load();
 
 //echo ${PGHOST};
 echo getenv('PGHOST');
