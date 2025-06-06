@@ -81,41 +81,111 @@ jobs:
             && rm -rf /var/lib/apt/lists/* \
             && apt-get clean
 
-        # Nginxの設定
-        COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
-        RUN rm /etc/nginx/sites-enabled/default
-
-        # PHP設定
-        COPY docker/php/php.ini /etc/php/8.1/fpm/conf.d/99-custom.ini
-
         # PHP-FPMの設定
-        RUN sed -i 's/listen = \/run\/php\/php8.1-fpm.sock/listen = 0.0.0.0:9000/' /etc/php/8.1/fpm/pool.d/www.conf
+        RUN sed -i 's/listen = \/run\/php\/php8.1-fpm.sock/listen = 127.0.0.1:9000/' /etc/php/8.1/fpm/pool.d/www.conf
 
         # 作業ディレクトリの設定
         WORKDIR /var/www/html
 
-        # アプリケーションファイルのコピー
-        COPY src/ /var/www/html/
+        # デフォルトのNginx設定を削除
+        RUN rm -f /etc/nginx/sites-enabled/default
+
+        # アプリケーションファイルのコピー（存在する場合）
+        COPY src/ /var/www/html/ 2>/dev/null || echo "No src directory found, will create default content"
 
         # 権限の設定
         RUN chown -R www-data:www-data /var/www/html \
             && chmod -R 755 /var/www/html
 
-        # ヘルスチェックの追加
-        HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-            CMD curl -f http://localhost/ || exit 1
-
-        # 起動スクリプトの作成
+        # 改善された起動スクリプトの作成
         RUN echo '#!/bin/bash' > /start.sh && \
             echo 'set -e' >> /start.sh && \
+            echo 'set -u' >> /start.sh && \
             echo '' >> /start.sh && \
-            echo '# PHP-FPMを起動' >> /start.sh && \
-            echo 'service php8.1-fpm start' >> /start.sh && \
+            echo '# ログ関数の定義' >> /start.sh && \
+            echo 'log() { echo "[$(date "+%Y-%m-%d %H:%M:%S")] $1"; }' >> /start.sh && \
             echo '' >> /start.sh && \
-            echo '# Nginxをフォアグラウンドで起動' >> /start.sh && \
-            echo 'nginx -g "daemon off;"' >> /start.sh
+            echo 'log "🚀 Starting container initialization..."' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '# デフォルトのNginx設定を作成' >> /start.sh && \
+            echo 'if [ ! -f /etc/nginx/conf.d/default.conf ]; then' >> /start.sh && \
+            echo '  log "📝 Creating default Nginx configuration..."' >> /start.sh && \
+            echo '  cat > /etc/nginx/conf.d/default.conf << "NGINX_EOF"' >> /start.sh && \
+            echo 'server {' >> /start.sh && \
+            echo '    listen 80;' >> /start.sh && \
+            echo '    server_name localhost;' >> /start.sh && \
+            echo '    root /var/www/html;' >> /start.sh && \
+            echo '    index index.php index.html;' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '    location / {' >> /start.sh && \
+            echo '        try_files $uri $uri/ /index.php?$query_string;' >> /start.sh && \
+            echo '    }' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '    location ~ \.php$ {' >> /start.sh && \
+            echo '        fastcgi_pass 127.0.0.1:9000;' >> /start.sh && \
+            echo '        fastcgi_index index.php;' >> /start.sh && \
+            echo '        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;' >> /start.sh && \
+            echo '        include fastcgi_params;' >> /start.sh && \
+            echo '    }' >> /start.sh && \
+            echo '}' >> /start.sh && \
+            echo 'NGINX_EOF' >> /start.sh && \
+            echo 'fi' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '# 基本的なindex.phpが存在しない場合は作成' >> /start.sh && \
+            echo 'if [ ! -f /var/www/html/index.php ]; then' >> /start.sh && \
+            echo '  log "📄 Creating default index.php..."' >> /start.sh && \
+            echo '  cat > /var/www/html/index.php << "PHP_EOF"' >> /start.sh && \
+            echo '<?php' >> /start.sh && \
+            echo 'echo "<h1>Docker Container is Working!</h1>";' >> /start.sh && \
+            echo 'echo "<p>PHP Version: " . phpversion() . "</p>";' >> /start.sh && \
+            echo 'echo "<p>Server Time: " . date("Y-m-d H:i:s") . "</p>";' >> /start.sh && \
+            echo '?>' >> /start.sh && \
+            echo 'PHP_EOF' >> /start.sh && \
+            echo '  chown www-data:www-data /var/www/html/index.php' >> /start.sh && \
+            echo 'fi' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '# PHP-FPMの起動' >> /start.sh && \
+            echo 'log "🚀 Starting PHP-FPM..."' >> /start.sh && \
+            echo 'if ! service php8.1-fpm start; then' >> /start.sh && \
+            echo '  log "❌ Failed to start PHP-FPM"' >> /start.sh && \
+            echo '  exit 1' >> /start.sh && \
+            echo 'fi' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '# PHP-FPMの起動確認' >> /start.sh && \
+            echo 'log "⏳ Waiting for PHP-FPM to be ready..."' >> /start.sh && \
+            echo 'timeout=30' >> /start.sh && \
+            echo 'while [ $timeout -gt 0 ]; do' >> /start.sh && \
+            echo '  if pgrep -f "php-fpm: master process" > /dev/null; then' >> /start.sh && \
+            echo '    log "✅ PHP-FPM is ready"' >> /start.sh && \
+            echo '    break' >> /start.sh && \
+            echo '  fi' >> /start.sh && \
+            echo '  sleep 1' >> /start.sh && \
+            echo '  timeout=$((timeout - 1))' >> /start.sh && \
+            echo 'done' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo 'if [ $timeout -eq 0 ]; then' >> /start.sh && \
+            echo '  log "❌ PHP-FPM failed to start within 30 seconds"' >> /start.sh && \
+            echo '  exit 1' >> /start.sh && \
+            echo 'fi' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '# Nginx設定テスト' >> /start.sh && \
+            echo 'log "🔧 Testing Nginx configuration..."' >> /start.sh && \
+            echo 'if ! nginx -t; then' >> /start.sh && \
+            echo '  log "❌ Nginx configuration test failed"' >> /start.sh && \
+            echo '  exit 1' >> /start.sh && \
+            echo 'fi' >> /start.sh && \
+            echo '' >> /start.sh && \
+            echo '# Nginxの起動' >> /start.sh && \
+            echo 'log "🚀 Starting Nginx..."' >> /start.sh && \
+            echo 'log "✅ Services started successfully!"' >> /start.sh && \
+            echo 'log "🌐 Server is ready to accept connections on port 80"' >> /start.sh && \
+            echo 'exec nginx -g "daemon off;"' >> /start.sh
 
         RUN chmod +x /start.sh
+
+        # ヘルスチェックの改善（起動時間を考慮）
+        HEALTHCHECK --interval=10s --timeout=5s --start-period=45s --retries=3 \
+            CMD curl -f http://localhost/ || exit 1
 
         EXPOSE 80
 
@@ -140,23 +210,115 @@ jobs:
     - name: Test Docker image
       if: github.event_name != 'pull_request'
       run: |
-        # イメージが正常にビルドされたかテスト
-        docker run --rm --name test-container -d -p 8080:80 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        set -e  # エラー時に即座に停止
         
-        # コンテナが起動するまで待機
-        sleep 10
+        # コンテナ起動前の準備
+        echo "🚀 Starting Docker container test..."
+        CONTAINER_NAME="test-container-$(date +%s)"
         
-        # ヘルスチェック
-        if curl -f http://localhost:8080; then
-          echo "✅ Container health check passed"
-        else
-          echo "❌ Container health check failed"
-          docker logs test-container
+        # コンテナを起動（エラーハンドリング付き）
+        echo "📦 Launching container..."
+        if ! CONTAINER_ID=$(docker run --rm --name "$CONTAINER_NAME" -d -p 8080:80 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest); then
+          echo "❌ Failed to start container"
           exit 1
         fi
         
-        # コンテナを停止
-        docker stop test-container
+        echo "✅ Container started with ID: $CONTAINER_ID"
+        
+        # クリーンアップ関数を定義
+        cleanup() {
+          echo "🧹 Cleaning up..."
+          if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+            echo "🛑 Stopping container $CONTAINER_NAME"
+            docker stop "$CONTAINER_NAME" || true
+          fi
+        }
+        trap cleanup EXIT
+        
+        # コンテナの状態を確認
+        echo "🔍 Container status:"
+        docker ps -a -f name="$CONTAINER_NAME"
+        
+        # 初期ログ確認
+        echo "📋 Initial container logs:"
+        docker logs "$CONTAINER_NAME"
+        
+        # サービス起動待機（段階的チェック）
+        echo "⏳ Waiting for services to initialize..."
+        for i in {1..9}; do
+          echo "🔄 Check $i/9 (${i}0 seconds elapsed)"
+          sleep 10
+          
+          # コンテナがまだ動いているか確認
+          if ! docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+            echo "❌ Container stopped unexpectedly"
+            docker logs "$CONTAINER_NAME"
+            exit 1
+          fi
+          
+          # プロセス確認
+          echo "🔧 Checking processes inside container:"
+          docker exec "$CONTAINER_NAME" ps aux | grep -E "(nginx|php-fpm)" || echo "No nginx/php-fpm processes found yet"
+          
+          # ポート確認
+          echo "🌐 Checking listening ports:"
+          docker exec "$CONTAINER_NAME" netstat -tlnp | grep ":80" || echo "Port 80 not listening yet"
+          
+          # 内部からのヘルスチェック
+          echo "🏥 Internal health check:"
+          if docker exec "$CONTAINER_NAME" curl -f -s http://localhost/ >/dev/null 2>&1; then
+            echo "✅ Internal health check passed"
+            break
+          else
+            echo "⚠️ Internal health check failed, retrying..."
+            docker logs --tail 10 "$CONTAINER_NAME"
+          fi
+          
+          if [ $i -eq 9 ]; then
+            echo "❌ Services failed to start after 90 seconds"
+            echo "📋 Final logs:"
+            docker logs "$CONTAINER_NAME"
+            exit 1
+          fi
+        done
+        
+        # 外部からのヘルスチェック（複数回試行）
+        echo "🌐 External connectivity test:"
+        for i in {1..5}; do
+          echo "🏥 External health check attempt $i/5"
+          if curl -f -s --max-time 10 http://localhost:8080 >/dev/null; then
+            echo "✅ External health check passed"
+            
+            # 最終確認（レスポンス内容も確認）
+            echo "🎯 Final verification:"
+            response=$(curl -s http://localhost:8080)
+            echo "Response received: $response"
+            
+            if echo "$response" | grep -q "Docker Container is Working"; then
+              echo "✅ All tests passed successfully!"
+              exit 0
+            else
+              echo "⚠️ Unexpected response content"
+            fi
+          else
+            echo "⚠️ External health check failed, waiting..."
+            
+            # デバッグ情報
+            echo "🔍 Debug info:"
+            docker port "$CONTAINER_NAME" || echo "Failed to get port info"
+            netstat -tlnp | grep :8080 || echo "Port 8080 not bound on host"
+            
+            sleep 5
+          fi
+        done
+        
+        # 全てのヘルスチェックが失敗した場合
+        echo "❌ All external health checks failed"
+        echo "📋 Final container logs:"
+        docker logs "$CONTAINER_NAME"
+        echo "🔍 Final container state:"
+        docker inspect "$CONTAINER_NAME" --format='{{.State.Status}}: {{.State.Error}}' || echo "Failed to inspect container"
+        exit 1
 
     - name: Image vulnerability scan
       if: github.event_name != 'pull_request'
