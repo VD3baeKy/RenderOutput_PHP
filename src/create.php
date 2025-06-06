@@ -1,7 +1,12 @@
 <?php
-$dsn = 'mysql:dbname=qqc43yuvftjdy57u;host=ao9moanwus0rjiex.cbetxkdyhwsb.us-east-1.rds.amazonaws.com;charset=utf8mb4';
-$user = 'tmglvmn78tt3xxjx';
-$password = 'olkvdjrzwzu55gvd';
+$host = getenv('DB_HOST') ?: 'localhost';
+$dbname = getenv('DB_NAME') ?: 'product_management';
+$user = getenv('DB_USER') ?: 'postgres';
+$password = getenv('DB_PASSWORD') ?: 'password';
+$port = getenv('DB_PORT') ?: '5432';
+
+$dsn = "pgsql:host={$host};dbname={$dbname};port={$port};options='--client_encoding=UTF8'";
+
 
 // submitパラメータの値が存在するとき（「登録」ボタンを押したとき）の処理
 if (isset($_POST['submit'])) {
