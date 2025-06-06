@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # --- SaaS PostgreSQLへの初期化用サービス ---
+  db_init:
+    env_file:
+      - /etc/secrets/.env
+      - /tmp/.env
+    image: postgres:15
+    environment:
+      PGPASSWORD: ${DB_PASSWORD}
+    command: >
+      bash -c "
+        until pg_isready -h ${DB_HOST} -p ${DB_PORT:-5432} -U ${DB_USER}; do
+          echo 'Waiting for DB...' && sleep 2;
+        done
+        &&
+        psql -h ${DB_HOST} -p ${DB_PORT:-5432} -U ${DB_USER} -d ${DB_DATABASE} -f /init.sql
+      "
+    volumes:
+      - ./docker/postgres/init.sql:/init.sql:ro
+    networks:
+      - app_network
+    restart: "no"
+
+  php:
+    env_file:
+      - /etc/secrets/.env
+      - /tmp/.env
+    build:
+      context: .
+      dockerfile: Dockerfile  # ルートのDockerfileを使用
+    container_name: ${APP_NAME}_php
+    volumes:
+      - ./src:/var/www/html
+      # 開発環境では composer.json も同期（オプション）
+      - ./composer.json:/var/www/html/composer.json:ro
+      - ./composer.lock:/var/www/html/composer.lock:ro
+    environment:
+      - PGHOST=${DB_HOST}
+      - PGDATABASE=${DB_DATABASE}
+      - PGUSER=${DB_USER}
+      - PGPASSWORD=${DB_PASSWORD}
+      - PGPORT=${DB_PORT:-5432}
+    networks:
+      - app_network
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-10000}:${PORT:-10000}"
+    depends_on:
+      - db_init
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${PORT:-10000}/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app_network:
+    driver: bridge
