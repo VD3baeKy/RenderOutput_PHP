@@ -61,5 +61,53 @@ class ProductServiceTest extends TestCase
         $result = \App\Service\ProductService::deleteProduct($pdo, $id);
         $this->assertSame(1, $result);
     }
+
+    public function testSearchProductsAsc()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+    
+        $expected = [
+            ['id' => 1, 'product_code' => 1001, 'product_name' => 'サンプル', 'price' => 100, 'stock_quantity' => 5, 'vendor_code' => 111, 'updated_at' => '2024-01-01 00:00:00'],
+        ];
+    
+        $stmt->expects($this->once())->method('execute');
+        $stmt->expects($this->once())->method('fetchAll')
+            ->with(PDO::FETCH_ASSOC)
+            ->willReturn($expected);
+    
+        $pdo = $this->createMock(PDO::class);
+        $sql = "SELECT * FROM products WHERE product_name LIKE :keyword ORDER BY updated_at ASC";
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->with($this->equalTo($sql))
+            ->willReturn($stmt);
+    
+        $result = \App\Service\ProductService::searchProducts($pdo, 'サンプル', 'asc');
+        $this->assertSame($expected, $result);
+    }
+
+    public function testSearchProductsDesc()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+    
+        $expected = [
+            ['id' => 2, 'product_code' => 2001, 'product_name' => '本番B', 'price' => 200, 'stock_quantity' => 20, 'vendor_code' => 222, 'updated_at' => '2024-05-05 00:00:00'],
+        ];
+    
+        $stmt->expects($this->once())->method('execute');
+        $stmt->expects($this->once())->method('fetchAll')
+            ->with(PDO::FETCH_ASSOC)
+            ->willReturn($expected);
+    
+        $pdo = $this->createMock(PDO::class);
+        $sql = "SELECT * FROM products WHERE product_name LIKE :keyword ORDER BY updated_at DESC";
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->with($this->equalTo($sql))
+            ->willReturn($stmt);
+    
+        $result = \App\Service\ProductService::searchProducts($pdo, '本番', 'desc');
+        $this->assertSame($expected, $result);
+    }
     
 }
