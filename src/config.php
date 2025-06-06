@@ -29,7 +29,7 @@ function getDatabaseConnection() {
 }
 
 // グローバルで使用する接続情報（後方互換性のため）
-$GLOBALS['dsn'] = $dsn;
-$GLOBALS['user'] = $db_user;
-$GLOBALS['password'] = $db_password;
+//$GLOBALS['dsn'] = $dsn;
+//$GLOBALS['user'] = $db_user;
+//$GLOBALS['password'] = $db_password;
 ?>
