@@ -23,6 +23,7 @@ COPY docker/nginx/default.conf.template /etc/nginx/conf.d/default.conf.template
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
+COPY /src /var/www/html
 WORKDIR /var/www/html
 RUN chown -R www-data:www-data /var/www/html
 EXPOSE ${PORT}
