@@ -7,8 +7,8 @@ $db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
 $db_port = $_ENV['DB_PORT'] ?? '5432';
 
 // PostgreSQL用のDSN
-$dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8";
-
+$dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
+$pdo->exec("SET NAMES 'UTF8'");
 
 // submitパラメータの値が存在するとき（「登録」ボタンを押したとき）の処理
 if (isset($_POST['submit'])) {
