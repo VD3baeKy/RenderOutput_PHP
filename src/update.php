@@ -17,7 +17,7 @@ $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
 if (isset($_POST['submit'])) {
     try {
         $pdo = new PDO($dsn, $db_user, $db_password);
-        //$pdo->exec("SET NAMES 'UTF8'");
+        $pdo->exec("SET NAMES 'UTF8'");
 
         // 動的に変わる値をプレースホルダに置き換えたUPDATE文をあらかじめ用意する
         $sql_update = '
@@ -57,7 +57,8 @@ if (isset($_POST['submit'])) {
 // idパラメータの値が存在すれば処理を行う
 if (isset($_GET['id'])) {
     try {
-        $pdo = new PDO($dsn, $user, $password);
+        $pdo = new PDO($dsn, $db_user, $db_password);
+        $pdo->exec("SET NAMES 'UTF8'");
 
         // idカラムの値をプレースホルダ（:id）に置き換えたSQL文をあらかじめ用意する
         $sql_select_product = 'SELECT * FROM products WHERE id = :id';
