@@ -4,9 +4,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-var_dump(file_exists('/etc/secrets/.env'));
-var_dump(is_readable('/etc/secrets/.env'));
-var_dump(file_get_contents('/etc/secrets/.env'));
+var_dump(file_exists('/tmp/.env'));
+var_dump(is_readable('/tmp/.env'));
+var_dump(file_get_contents('/tmp/.env'));
 
 require_once __DIR__ . '/vendor/autoload.php';
 Dotenv\Dotenv::createImmutable('/tmp')->load();
