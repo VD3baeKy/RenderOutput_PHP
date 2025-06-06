@@ -13,11 +13,10 @@ $db_port = $_ENV['DB_PORT'] ?? '5432';
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
-$pdo->exec("SET NAMES 'UTF8'");
-
 
 try {
-    $pdo = new PDO($dsn, $user, $password);
+    $pdo = new PDO($dsn, $db_user, $db_password);
+    $pdo->exec("SET NAMES 'UTF8'");
 
     // orderパラメータの値が存在すれば（並び替えボタンを押したとき）、その値を変数$orderに代入する
     if (isset($_GET['order'])) {
