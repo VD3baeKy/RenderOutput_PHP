@@ -4,6 +4,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+var_dump($_ENV['DB_HOST'], getenv('DB_HOST'));
+
+    
 // データベース接続設定
 $db_host = $_ENV['DB_HOST'] ?? 'postgres';
 $db_name = $_ENV['DB_NAME'] ?? 'product_management';
