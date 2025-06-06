@@ -90,98 +90,103 @@ jobs:
         # デフォルトのNginx設定を削除
         RUN rm -f /etc/nginx/sites-enabled/default
 
-        # アプリケーションファイルのコピー（存在する場合）
-        COPY src/ /var/www/html/ 2>/dev/null || echo "No src directory found, will create default content"
+        # アプリケーションファイルのコピー（条件付き）
+        # srcディレクトリが存在する場合のみコピー
+        COPY --from=src src/ /var/www/html/ 2>/dev/null || true
+        # または、より安全な方法として以下を使用：
+        # RUN mkdir -p /var/www/html
+        # 次に、別のステップでファイルをコピー
 
         # 権限の設定
         RUN chown -R www-data:www-data /var/www/html \
             && chmod -R 755 /var/www/html
 
         # 改善された起動スクリプトの作成
-        RUN echo '#!/bin/bash' > /start.sh && \
-            echo 'set -e' >> /start.sh && \
-            echo 'set -u' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '# ログ関数の定義' >> /start.sh && \
-            echo 'log() { echo "[$(date "+%Y-%m-%d %H:%M:%S")] $1"; }' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo 'log "🚀 Starting container initialization..."' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '# デフォルトのNginx設定を作成' >> /start.sh && \
-            echo 'if [ ! -f /etc/nginx/conf.d/default.conf ]; then' >> /start.sh && \
-            echo '  log "📝 Creating default Nginx configuration..."' >> /start.sh && \
-            echo '  cat > /etc/nginx/conf.d/default.conf << "NGINX_EOF"' >> /start.sh && \
-            echo 'server {' >> /start.sh && \
-            echo '    listen 80;' >> /start.sh && \
-            echo '    server_name localhost;' >> /start.sh && \
-            echo '    root /var/www/html;' >> /start.sh && \
-            echo '    index index.php index.html;' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '    location / {' >> /start.sh && \
-            echo '        try_files $uri $uri/ /index.php?$query_string;' >> /start.sh && \
-            echo '    }' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '    location ~ \.php$ {' >> /start.sh && \
-            echo '        fastcgi_pass 127.0.0.1:9000;' >> /start.sh && \
-            echo '        fastcgi_index index.php;' >> /start.sh && \
-            echo '        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;' >> /start.sh && \
-            echo '        include fastcgi_params;' >> /start.sh && \
-            echo '    }' >> /start.sh && \
-            echo '}' >> /start.sh && \
-            echo 'NGINX_EOF' >> /start.sh && \
-            echo 'fi' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '# 基本的なindex.phpが存在しない場合は作成' >> /start.sh && \
-            echo 'if [ ! -f /var/www/html/index.php ]; then' >> /start.sh && \
-            echo '  log "📄 Creating default index.php..."' >> /start.sh && \
-            echo '  cat > /var/www/html/index.php << "PHP_EOF"' >> /start.sh && \
-            echo '<?php' >> /start.sh && \
-            echo 'echo "<h1>Docker Container is Working!</h1>";' >> /start.sh && \
-            echo 'echo "<p>PHP Version: " . phpversion() . "</p>";' >> /start.sh && \
-            echo 'echo "<p>Server Time: " . date("Y-m-d H:i:s") . "</p>";' >> /start.sh && \
-            echo '?>' >> /start.sh && \
-            echo 'PHP_EOF' >> /start.sh && \
-            echo '  chown www-data:www-data /var/www/html/index.php' >> /start.sh && \
-            echo 'fi' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '# PHP-FPMの起動' >> /start.sh && \
-            echo 'log "🚀 Starting PHP-FPM..."' >> /start.sh && \
-            echo 'if ! service php8.1-fpm start; then' >> /start.sh && \
-            echo '  log "❌ Failed to start PHP-FPM"' >> /start.sh && \
-            echo '  exit 1' >> /start.sh && \
-            echo 'fi' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '# PHP-FPMの起動確認' >> /start.sh && \
-            echo 'log "⏳ Waiting for PHP-FPM to be ready..."' >> /start.sh && \
-            echo 'timeout=30' >> /start.sh && \
-            echo 'while [ $timeout -gt 0 ]; do' >> /start.sh && \
-            echo '  if pgrep -f "php-fpm: master process" > /dev/null; then' >> /start.sh && \
-            echo '    log "✅ PHP-FPM is ready"' >> /start.sh && \
-            echo '    break' >> /start.sh && \
-            echo '  fi' >> /start.sh && \
-            echo '  sleep 1' >> /start.sh && \
-            echo '  timeout=$((timeout - 1))' >> /start.sh && \
-            echo 'done' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo 'if [ $timeout -eq 0 ]; then' >> /start.sh && \
-            echo '  log "❌ PHP-FPM failed to start within 30 seconds"' >> /start.sh && \
-            echo '  exit 1' >> /start.sh && \
-            echo 'fi' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '# Nginx設定テスト' >> /start.sh && \
-            echo 'log "🔧 Testing Nginx configuration..."' >> /start.sh && \
-            echo 'if ! nginx -t; then' >> /start.sh && \
-            echo '  log "❌ Nginx configuration test failed"' >> /start.sh && \
-            echo '  exit 1' >> /start.sh && \
-            echo 'fi' >> /start.sh && \
-            echo '' >> /start.sh && \
-            echo '# Nginxの起動' >> /start.sh && \
-            echo 'log "🚀 Starting Nginx..."' >> /start.sh && \
-            echo 'log "✅ Services started successfully!"' >> /start.sh && \
-            echo 'log "🌐 Server is ready to accept connections on port 80"' >> /start.sh && \
-            echo 'exec nginx -g "daemon off;"' >> /start.sh
+        RUN cat > /start.sh << 'SCRIPT_EOF' && \
+        #!/bin/bash
+        set -e
+        set -u
 
-        RUN chmod +x /start.sh
+        # ログ関数の定義
+        log() { echo "[$(date "+%Y-%m-%d %H:%M:%S")] $1"; }
+
+        log "🚀 Starting container initialization..."
+
+        # デフォルトのNginx設定を作成
+        if [ ! -f /etc/nginx/conf.d/default.conf ]; then
+          log "📝 Creating default Nginx configuration..."
+          cat > /etc/nginx/conf.d/default.conf << "NGINX_EOF"
+        server {
+            listen 80;
+            server_name localhost;
+            root /var/www/html;
+            index index.php index.html;
+
+            location / {
+                try_files $uri $uri/ /index.php?$query_string;
+            }
+
+            location ~ \.php$ {
+                fastcgi_pass 127.0.0.1:9000;
+                fastcgi_index index.php;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                include fastcgi_params;
+            }
+        }
+        NGINX_EOF
+        fi
+
+        # 基本的なindex.phpが存在しない場合は作成
+        if [ ! -f /var/www/html/index.php ]; then
+          log "📄 Creating default index.php..."
+          cat > /var/www/html/index.php << "PHP_EOF"
+        <?php
+        echo "<h1>Docker Container is Working!</h1>";
+        echo "<p>PHP Version: " . phpversion() . "</p>";
+        echo "<p>Server Time: " . date("Y-m-d H:i:s") . "</p>";
+        ?>
+        PHP_EOF
+          chown www-data:www-data /var/www/html/index.php
+        fi
+
+        # PHP-FPMの起動
+        log "🚀 Starting PHP-FPM..."
+        if ! service php8.1-fpm start; then
+          log "❌ Failed to start PHP-FPM"
+          exit 1
+        fi
+
+        # PHP-FPMの起動確認
+        log "⏳ Waiting for PHP-FPM to be ready..."
+        timeout=30
+        while [ $timeout -gt 0 ]; do
+          if pgrep -f "php-fpm: master process" > /dev/null; then
+            log "✅ PHP-FPM is ready"
+            break
+          fi
+          sleep 1
+          timeout=$((timeout - 1))
+        done
+
+        if [ $timeout -eq 0 ]; then
+          log "❌ PHP-FPM failed to start within 30 seconds"
+          exit 1
+        fi
+
+        # Nginx設定テスト
+        log "🔧 Testing Nginx configuration..."
+        if ! nginx -t; then
+          log "❌ Nginx configuration test failed"
+          exit 1
+        fi
+
+        # Nginxの起動
+        log "🚀 Starting Nginx..."
+        log "✅ Services started successfully!"
+        log "🌐 Server is ready to accept connections on port 80"
+        exec nginx -g "daemon off;"
+        SCRIPT_EOF
+        chmod +x /start.sh
 
         # ヘルスチェックの改善（起動時間を考慮）
         HEALTHCHECK --interval=10s --timeout=5s --start-period=45s --retries=3 \
@@ -191,6 +196,21 @@ jobs:
 
         CMD ["/start.sh"]
         EOF
+
+    # srcディレクトリが存在しない場合の対応
+    - name: Create src directory if not exists
+      run: |
+        if [ ! -d "src" ]; then
+          echo "📁 Creating src directory with default content..."
+          mkdir -p src
+          cat > src/index.php << 'PHP_EOF'
+        <?php
+        echo "<h1>Hello from GitHub Actions!</h1>";
+        echo "<p>Build time: " . date("Y-m-d H:i:s") . "</p>";
+        echo "<p>PHP Version: " . phpversion() . "</p>";
+        ?>
+        PHP_EOF
+        fi
 
     - name: Build Docker image
       uses: docker/build-push-action@v5
