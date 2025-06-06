@@ -26,5 +26,14 @@ class ProductService
         $stmt = $pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
+
+    public static function deleteProduct(PDO $pdo, int $id): int
+    {
+        $sql = 'DELETE FROM products WHERE id = :id';
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->rowCount();
+    }
+    
 }
-/service/ProductService.php
