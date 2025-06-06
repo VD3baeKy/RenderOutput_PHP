@@ -55,5 +55,39 @@ class ProductService
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public static function getProductById(PDO $pdo, int $id): ?array
+    {
+        $sql = 'SELECT * FROM products WHERE id = :id';
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result === false ? null : $result;
+    }
+
+    // 商品情報を更新
+    public static function updateProduct(PDO $pdo, int $id, array $data): int
+    {
+        $sql = '
+            UPDATE products
+            SET
+                product_code = :product_code,
+                product_name = :product_name,
+                price = :price,
+                stock_quantity = :stock_quantity,
+                vendor_code = :vendor_code
+            WHERE id = :id
+        ';
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':product_code', $data['product_code'], PDO::PARAM_INT);
+        $stmt->bindValue(':product_name', $data['product_name'], PDO::PARAM_STR);
+        $stmt->bindValue(':price', $data['price'], PDO::PARAM_INT);
+        $stmt->bindValue(':stock_quantity', $data['stock_quantity'], PDO::PARAM_INT);
+        $stmt->bindValue(':vendor_code', $data['vendor_code'], PDO::PARAM_INT);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->rowCount();
+    }
     
 }
