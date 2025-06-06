@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
  && rm -rf /var/lib/apt/lists/* && apt-get clean
 
-# Composer本体の導入（便利なやり方）
+# Composer本体の導入
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
 # nginx/php-fpm等の初期調整
@@ -31,19 +31,23 @@ RUN chmod +x /start.sh
 COPY docker/error/404.html /var/www/html/error/404.html
 COPY docker/error/50x.html /var/www/html/error/50x.html
 
-WORKDIR /var/www/html
+# ワーキングディレクトリを/var/wwwに設定（htmlの親ディレクトリ）
+WORKDIR /var/www
 
-# composer.jsonとcomposer.lockをコピー（存在する場合）
+# composer.jsonとcomposer.lockをコピー
 COPY composer.json composer.lock* ./
 
-# 依存関係をインストール
+# vendorディレクトリを/var/wwwに作成
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
-# アプリ本体をコピー
-COPY src/ ./
+# srcディレクトリの内容を/var/www/htmlにコピー
+COPY src/ ./html/
 
 # 権限設定
-RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data /var/www
+
+# ワーキングディレクトリを戻す
+WORKDIR /var/www/html
 
 EXPOSE ${PORT}
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
