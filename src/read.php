@@ -4,16 +4,22 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-echo getenv('DB_HOST');
-var_dump($_ENV['DB_HOST'], getenv('DB_HOST'));
+echo getenv('PGHOST');
+var_dump($_ENV['PGHOST'], getenv('PGHOST'));
 
     
 // データベース接続設定
-$db_host = $_ENV['DB_HOST'] ?? 'postgres';
-$db_name = $_ENV['DB_NAME'] ?? 'product_management';
-$db_user = $_ENV['DB_USER'] ?? 'app_user';
-$db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
-$db_port = $_ENV['DB_PORT'] ?? '5432';
+//$db_host = $_ENV['DB_HOST'] ?? 'postgres';
+//$db_name = $_ENV['DB_NAME'] ?? 'product_management';
+//$db_user = $_ENV['DB_USER'] ?? 'app_user';
+//$db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
+//$db_port = $_ENV['DB_PORT'] ?? '5432';
+
+$db_host = ${PGHOST}
+$db_name = ${PGDATABASE}
+$db_user = ${PGUSER}
+$db_password = ${PGPASSWORD}
+$db_port = ${PGPORT:-5432}
 
 // PostgreSQL用のDSN
 $dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
