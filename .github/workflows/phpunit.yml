@@ -76,11 +76,11 @@ jobs:
           mkdir -p test-code/result
           vendor/bin/phpunit --coverage-html test-code/result test-code/tests/ProductServiceTest.php
 
-      - name: Commit and Push Coverage Report
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add test-code/result/
-          git commit -m "chore: Update PHPUnit coverage report [skip ci]" || echo "No changes to commit"
-          git push origin main
+      # gh-pagesブランチにデプロイ
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./test-code/result
+          publish_branch: gh-pages
           
