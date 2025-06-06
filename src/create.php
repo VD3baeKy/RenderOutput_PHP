@@ -1,11 +1,13 @@
 <?php
-$host = getenv('DB_HOST') ?: 'localhost';
-$dbname = getenv('DB_NAME') ?: 'product_management';
-$user = getenv('DB_USER') ?: 'postgres';
-$password = getenv('DB_PASSWORD') ?: 'password';
-$port = getenv('DB_PORT') ?: '5432';
+// データベース接続設定
+$db_host = $_ENV['DB_HOST'] ?? 'postgres';
+$db_name = $_ENV['DB_NAME'] ?? 'product_management';
+$db_user = $_ENV['DB_USER'] ?? 'app_user';
+$db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
+$db_port = $_ENV['DB_PORT'] ?? '5432';
 
-$dsn = "pgsql:host={$host};dbname={$dbname};port={$port};options='--client_encoding=UTF8'";
+// PostgreSQL用のDSN
+$dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8";
 
 
 // submitパラメータの値が存在するとき（「登録」ボタンを押したとき）の処理
