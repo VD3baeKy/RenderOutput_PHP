@@ -4,7 +4,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-echo "${PGHOST}";
+echo ${PGHOST};
+echo getenv('PGHOST');
 var_dump($_ENV['PGHOST'], getenv('PGHOST'));
 
     
