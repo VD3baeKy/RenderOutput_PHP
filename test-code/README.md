@@ -17,8 +17,16 @@
 * createProduct(), getAllVendorCodes(）の２つの関数にPHPコードを分割し、その関数についてPHPUnitテストを実施。
     - createProduct() : productsテーブルへのINSERT部分のテスト。
     - getAllVendorCodes() : vendorsテーブルからvendor_codeリスト取得のテスト。
-    - ロジック単体テストなので、副作用や外部依存のテストはモックで実行。
+    - ロジック単体テストなので、副作用や外部依存のテストはモック化して実行。
 
 ---
+
+## DeleteFunctionsTest
+* deleteProduct関数は「id指定のレコード削除」を担当している。
+* PDOとPDOStatementをモック化し、「SQL実行」,「rowCount」の呼び出しを検証。
+* 削除件数（rowCount()の返値）が想定通りかを確認。
+
+---
+
 
 
