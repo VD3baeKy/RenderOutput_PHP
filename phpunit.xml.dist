@@ -3,13 +3,13 @@
          colors="true"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="Application Test Suite">
+        <testsuite name="App Test Suite">
             <directory>test-code/tests</directory>
         </testsuite>
     </testsuites>
     <coverage processUncoveredFiles="true">
         <include>
-            <directory suffix=".php">src</directory>
+            <directory suffix=".php">src/service/</directory>
         </include>
         <report>
             <html outputDirectory="test-code/result"/>
