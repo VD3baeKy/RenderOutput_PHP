@@ -6,9 +6,9 @@ error_reporting(E_ALL);
 
 //echo ${PGHOST};
 echo getenv('PGHOST');
-var_dump($_ENV['PGHOST'], getenv('PGHOST'));
+//var_dump($_ENV['PGHOST'], getenv('PGHOST'));
 
-echo ${DB_HOST};
+//echo ${DB_HOST};
 echo getenv('DB_HOST');
 var_dump($_ENV['DB_HOST'], getenv('DB_HOST'));
 
