@@ -245,10 +245,10 @@ jobs:
         # クリーンアップ関数を定義
         cleanup() {
           echo "🧹 Cleaning up..."
-          if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
-            echo "🛑 Stopping container $CONTAINER_NAME"
-            docker stop "$CONTAINER_NAME" || true
-          fi
+          #if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+          #  echo "🛑 Stopping container $CONTAINER_NAME"
+          #  docker stop "$CONTAINER_NAME" || true
+          #fi
         }
         trap cleanup EXIT
         
