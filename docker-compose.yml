@@ -32,10 +32,11 @@ services:
       dockerfile: Dockerfile  # ルートのDockerfileを使用
     container_name: ${APP_NAME}_php
     volumes:
+      # srcの内容をhtmlディレクトリにマウント
       - ./src:/var/www/html
-      # 開発環境では composer.json も同期（オプション）
-      - ./composer.json:/var/www/html/composer.json:ro
-      - ./composer.lock:/var/www/html/composer.lock:ro
+      # composer.jsonを親ディレクトリにマウント
+      - ./composer.json:/var/www/composer.json:ro
+      - ./composer.lock:/var/www/composer.lock:ro
     environment:
       - PGHOST=${DB_HOST}
       - PGDATABASE=${DB_DATABASE}
