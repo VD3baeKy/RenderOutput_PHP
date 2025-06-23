@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
-Dotenv\Dotenv::createImmutable('/tmp')->load();
+//Dotenv\Dotenv::createImmutable('/tmp')->load();
     
 // データベース接続設定
 $db_host = $_ENV['DB_HOST'] ?? 'postgres';
