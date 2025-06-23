@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../vendor/autoload.php';
-Dotenv\Dotenv::createImmutable('/tmp')->load();
+//Dotenv\Dotenv::createImmutable('/tmp')->load();
 
 use App\Service\ProductService;
 
