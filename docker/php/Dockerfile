@@ -2,7 +2,8 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Tokyo
-ENV PORT=10000
+# ENV PORT=10000
+ENV PORT=80
 
 # 必要パッケージ
 RUN apt-get update && apt-get install -y \
