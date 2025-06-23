@@ -6,12 +6,11 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Service\ProductService;
 
 // DB設定
-$db_host = $_ENV['DB_HOST'] ?? 'postgres';
-$db_name = $_ENV['DB_NAME'] ?? 'product_management';
-$db_user = $_ENV['DB_USER'] ?? 'app_user';
-$db_password = $_ENV['DB_PASSWORD'] ?? 'app_password';
+$db_host = $_ENV['DB_HOST'] ?? 'ep-bold-sound-ab1w4r9g-pooler.eu-west-2.aws.neon.tech';
+$db_name = $_ENV['DB_NAME'] ?? 'RenderOutput_PHP';
+$db_user = $_ENV['DB_USER'] ?? 'RenderOutput_PHP_owner';
+$db_password = $_ENV['DB_PASSWORD'] ?? 'npg_3psvCBekh9dI';
 $db_port = $_ENV['DB_PORT'] ?? '5432';
-$dsn = "pgsql:host={$db_host};port={$db_port};dbname={$db_name}";
 
 try {
     $pdo = new PDO($dsn, $db_user, $db_password);
